@@ -174,4 +174,65 @@ public class AdminController : ControllerBase
         return Ok("Room deleted");
     }
     #endregion
+
+    // ========== ROOM TYPES CRUD ==========
+    #region Room Types CRUD
+    // GET: /api/admin/roomtypes
+    [HttpGet("roomtypes")]
+    public async Task<IActionResult> GetRoomTypes()
+    {
+        var types = await _context.RoomTypes.ToListAsync();
+        return Ok(types);
+    }
+
+    // POST: /api/admin/roomtypes
+    [HttpPost("roomtypes")]
+    public async Task<IActionResult> CreateRoomType([FromBody] RoomType type)
+    {
+        await _context.RoomTypes.AddAsync(type);
+        await _context.SaveChangesAsync();
+        return Ok(type);
+    }
+
+    // DELETE: /api/admin/roomtypes/{id}
+    [HttpDelete("roomtypes/{id}")]
+    public async Task<IActionResult> DeleteRoomType(int id)
+    {
+        var type = await _context.RoomTypes.FindAsync(id);
+        if (type == null) return NotFound("Room type not found");
+        _context.RoomTypes.Remove(type);
+        await _context.SaveChangesAsync();
+        return Ok("Room type deleted");
+    }
+    #endregion
+    // ========== DISCOUNTS CRUD ==========
+    #region Discounts CRUD
+    // GET: /api/admin/discounts
+    [HttpGet("discounts")]
+    public async Task<IActionResult> GetDiscounts()
+    {
+        var discounts = await _context.Discounts.ToListAsync();
+        return Ok(discounts);
+    }
+
+    // POST: /api/admin/discounts
+    [HttpPost("discounts")]
+    public async Task<IActionResult> CreateDiscount([FromBody] Discount discount)
+    {
+        await _context.Discounts.AddAsync(discount);
+        await _context.SaveChangesAsync();
+        return Ok(discount);
+    }
+
+    // DELETE: /api/admin/discounts/{id}
+    [HttpDelete("discounts/{id}")]
+    public async Task<IActionResult> DeleteDiscount(int id)
+    {
+        var discount = await _context.Discounts.FindAsync(id);
+        if (discount == null) return NotFound("Discount not found");
+        _context.Discounts.Remove(discount);
+        await _context.SaveChangesAsync();
+        return Ok("Discount deleted");
+    }
+    #endregion
 }
