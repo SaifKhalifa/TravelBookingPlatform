@@ -13,5 +13,11 @@ public class Room
     public int HotelId { get; set; }
     public Hotel? Hotel { get; set; }
 
+    public int RoomTypeId { get; set; }
+    public RoomType? RoomType { get; set; }
+
+    public int? DiscountId { get; set; }
+    public Discount? Discount { get; set; }
+
     public ICollection<Booking>? Bookings { get; set; }
 }
