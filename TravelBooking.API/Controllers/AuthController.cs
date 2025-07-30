@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using Azure.Core;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -7,6 +8,7 @@ using System.Security.Claims;
 using System.Text;
 using TravelBooking.Domain.Entities;
 using TravelBooking.Infrastructure.Persistence;
+using TravelBooking.Infrastructure.Services;
 
 namespace TravelBooking.API.Controllers;
 
@@ -19,11 +21,13 @@ public class AuthController : ControllerBase
     private readonly IConfiguration _config;
 
     private readonly ApplicationDbContext _context;
+    private readonly EmailService _emailService;
 
-    public AuthController(ApplicationDbContext context, IConfiguration config)
+    public AuthController(ApplicationDbContext context, IConfiguration config, EmailService emailService)
     {
         _context = context;
         _config = config;
+        _emailService = emailService;
     }
 
     [HttpPost("register")]
@@ -38,6 +42,16 @@ public class AuthController : ControllerBase
 
         await _context.Users.AddAsync(user);
         await _context.SaveChangesAsync();
+
+        await _emailService.SendEmailAsync(
+            toEmail: user.Email,
+            subject: $"Welcome {user.Name}!",
+            body: $"Hi, {user.Name}👋\n" +
+            $"Thanks for registering in the travel booking system services\n" +
+            $"This email was sent to '{user.Email}'\n" +
+            $"THIS EMAIL IS JUST FOR TESTING, FEEL FREE TO DELETE IT."
+        );
+
 
         return Ok("User registered in the database.");
     }
