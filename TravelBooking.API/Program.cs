@@ -5,7 +5,7 @@ using TravelBooking.Infrastructure.Persistence;
 using TravelBooking.Infrastructure.Services;
 
 // Global variable to control DB seeding with dummy data
-const bool SEED_DB = false;
+const bool SEED_DB = true;
 
 var builder = WebApplication.CreateBuilder(args);
 
