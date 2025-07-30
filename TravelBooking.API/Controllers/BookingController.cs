@@ -56,6 +56,19 @@ public class BookingController : ControllerBase
         await _context.Bookings.AddAsync(booking);
         await _context.SaveChangesAsync();
 
+        var payment = new Payment
+        {
+            BookingId = booking.Id,
+            Amount = totalPrice,
+            Status = "Paid",
+            Method = "Cash", // Or "CreditCard", "PayPal", etc.
+            TransactionId = $"TRX-{Guid.NewGuid().ToString().Substring(0, 8)}",
+            CreatedAt = DateTime.UtcNow
+        };
+
+        await _context.Payments.AddAsync(payment);
+        await _context.SaveChangesAsync();
+
         return Ok(new
         {
             booking.Id,
@@ -67,8 +80,15 @@ public class BookingController : ControllerBase
             Total = totalPrice,
             CheckIn = booking.CheckInDate,
             CheckOut = booking.CheckOutDate,
-            Status = booking.Status
+            Status = booking.Status,
+            Payment = new
+            {
+                payment.Method,
+                payment.Status,
+                payment.TransactionId
+            }
         });
+
     }
 
     // GET: /api/booking/history
