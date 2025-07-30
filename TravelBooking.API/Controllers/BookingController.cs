@@ -25,16 +25,22 @@ public class BookingController : ControllerBase
     {
         var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
 
-        var room = await _context.Rooms.FirstOrDefaultAsync(r => r.Id == request.RoomId);
+        var room = await _context.Rooms
+            .Include(r => r.Discount)
+            .Include(r => r.RoomType)
+            .Include(r => r.Hotel)
+            .FirstOrDefaultAsync(r => r.Id == request.RoomId);
+
         if (room == null || !room.IsAvailable)
             return BadRequest("Room not available");
 
-        // Calculate number of nights
         var nights = (request.CheckOutDate - request.CheckInDate).Days;
         if (nights <= 0)
             return BadRequest("Check-out must be after check-in");
 
-        var totalPrice = nights * room.PricePerNight;
+        var basePrice = nights * room.PricePerNight;
+        var discountPercent = room.Discount?.Percentage ?? 0;
+        var totalPrice = basePrice * (1 - (discountPercent / 100));
 
         var booking = new Booking
         {
@@ -47,17 +53,20 @@ public class BookingController : ControllerBase
         };
 
         room.IsAvailable = false;
-
         await _context.Bookings.AddAsync(booking);
         await _context.SaveChangesAsync();
 
         return Ok(new
         {
             booking.Id,
+            Hotel = room.Hotel?.Name,
             Room = room.RoomNumber,
-            Total = booking.TotalPrice,
-            booking.CheckInDate,
-            booking.CheckOutDate,
+            RoomType = room.RoomType?.Name,
+            Discount = room.Discount?.Name ?? "No Discount",
+            DiscountApplied = $"{discountPercent}%",
+            Total = totalPrice,
+            CheckIn = booking.CheckInDate,
+            CheckOut = booking.CheckOutDate,
             Status = booking.Status
         });
     }
