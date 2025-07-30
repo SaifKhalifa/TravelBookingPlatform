@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using TravelBooking.Infrastructure.Persistence;
+using TravelBooking.Infrastructure.Services;
 
 // Global variable to control DB seeding with dummy data
 const bool SEED_DB = false;
@@ -68,6 +69,9 @@ builder.Services.AddSwaggerGen(options =>
         }
     });
 });
+
+// Email service
+builder.Services.AddScoped<EmailService>();
 
 var app = builder.Build();
 
