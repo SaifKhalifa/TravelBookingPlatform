@@ -13,7 +13,7 @@ public class EmailService
         _config = config;
     }
 
-    public async Task SendBookingConfirmation(string toEmail, string subject, string body)
+    public async Task SendEmailAsync(string toEmail, string subject, string body)
     {
         var smtpClient = new SmtpClient("smtp.gmail.com")
         {
