@@ -64,4 +64,21 @@ public class ReviewController : ControllerBase
 
         return Ok(reviews);
     }
+
+    // DELETE: /api/review/{id}
+    [HttpDelete("{id}")]
+    public async Task<IActionResult> DeleteReview(int id)
+    {
+        var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+
+        var review = await _context.Reviews.FirstOrDefaultAsync(r => r.Id == id && r.UserId == userId);
+        if (review == null)
+            return NotFound("Review not found or not yours.");
+
+        _context.Reviews.Remove(review);
+        await _context.SaveChangesAsync();
+
+        return Ok("Review deleted.");
+    }
+
 }
