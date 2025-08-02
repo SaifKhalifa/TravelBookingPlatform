@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using TravelBooking.Infrastructure.Persistence;
 
@@ -11,9 +12,11 @@ using TravelBooking.Infrastructure.Persistence;
 namespace TravelBooking.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250802061535_AddReviewDeletionAudit")]
+    partial class AddReviewDeletionAudit
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -124,8 +127,6 @@ namespace TravelBooking.Infrastructure.Migrations
                         .HasColumnType("int");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("DeletedByAdminId");
 
                     b.HasIndex("HotelId");
 
@@ -335,10 +336,6 @@ namespace TravelBooking.Infrastructure.Migrations
 
             modelBuilder.Entity("Review", b =>
                 {
-                    b.HasOne("TravelBooking.Domain.Entities.User", "DeletedByAdmin")
-                        .WithMany()
-                        .HasForeignKey("DeletedByAdminId");
-
                     b.HasOne("TravelBooking.Domain.Entities.Hotel", "Hotel")
                         .WithMany()
                         .HasForeignKey("HotelId")
@@ -350,8 +347,6 @@ namespace TravelBooking.Infrastructure.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.Navigation("DeletedByAdmin");
 
                     b.Navigation("Hotel");
 

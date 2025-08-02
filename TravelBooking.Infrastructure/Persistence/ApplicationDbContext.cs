@@ -21,6 +21,10 @@ public class ApplicationDbContext : DbContext
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
-        // TO-DO: Fluent API configurations here
+        modelBuilder.Entity<Review>()
+            .HasOne(r => r.DeletedByAdmin)
+            .WithMany()
+            .HasForeignKey(r => r.DeletedByAdminId)
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }
