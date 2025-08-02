@@ -6,6 +6,7 @@ using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using TravelBooking.API.DTOs;
 using TravelBooking.Domain.Entities;
 using TravelBooking.Infrastructure.Persistence;
 using TravelBooking.Infrastructure.Services;
@@ -31,14 +32,19 @@ public class AuthController : ControllerBase
     }
 
     [HttpPost("register")]
-    public async Task<IActionResult> Register([FromBody] User user)
+    public async Task<IActionResult> Register([FromBody] RegisterDto dto)
     {
-        var exists = await _context.Users.AnyAsync(u => u.Email == user.Email);
+        var exists = await _context.Users.AnyAsync(u => u.Email == dto.Email);
         if (exists)
             return BadRequest("Email already exists.");
 
-        user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(user.PasswordHash);
-        user.Role = "User";
+        var user = new User
+        {
+            Name = dto.Name,
+            Email = dto.Email,
+            PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password),
+            Role = "User"
+        };
 
         await _context.Users.AddAsync(user);
         await _context.SaveChangesAsync();
@@ -48,23 +54,31 @@ public class AuthController : ControllerBase
             subject: $"Welcome {user.Name}!",
             body: $"Hi, {user.Name}👋\n" +
             $"Thanks for registering in the travel booking system services\n" +
-            $"This email was sent to '{user.Email}'\n" +
-            $"THIS EMAIL IS JUST FOR TESTING, FEEL FREE TO DELETE IT."
+            $"This email was sent to '{user.Email}'\n\n" +
+            $"FEEL FREE TO DELETE THIS EMAIL."
         );
 
-
-        return Ok("User registered in the database.");
+        return Ok(new { message = "User registered." });
     }
 
     [HttpPost("login")]
-    public async Task<IActionResult> Login([FromBody] User login)
+    public async Task<IActionResult> Login([FromBody] LoginDto dto)
     {
-        var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == login.Email);
-        if (user is null || !BCrypt.Net.BCrypt.Verify(login.PasswordHash, user.PasswordHash))
+        var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == dto.Email);
+        if (user is null || !BCrypt.Net.BCrypt.Verify(dto.Password, user.PasswordHash))
             return Unauthorized("Invalid email or password.");
 
         var token = CreateToken(user);
-        return Ok(new { token });
+
+        var userInfo = new UserDto
+        {
+            Id = user.Id,
+            Name = user.Name,
+            Email = user.Email,
+            Role = user.Role
+        };
+
+        return Ok(new { token, user = userInfo });
     }
 
     private string CreateToken(User user)
