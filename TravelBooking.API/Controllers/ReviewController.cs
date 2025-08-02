@@ -49,7 +49,7 @@ public class ReviewController : ControllerBase
     public async Task<IActionResult> GetHotelReviews(int hotelId)
     {
         var reviews = await _context.Reviews
-            .Where(r => r.HotelId == hotelId)
+            .Where(r => r.HotelId == hotelId && !r.IsDeleted)
             .Include(r => r.User)
             .OrderByDescending(r => r.CreatedAt)
             .Select(r => new
@@ -72,13 +72,20 @@ public class ReviewController : ControllerBase
         var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
 
         var review = await _context.Reviews.FirstOrDefaultAsync(r => r.Id == id && r.UserId == userId);
-        if (review == null)
-            return NotFound("Review not found or not yours.");
+        if (review == null || review.IsDeleted)
+            return NotFound("Review not found or already deleted.");
 
-        _context.Reviews.Remove(review);
+        var timeSincePosted = DateTime.UtcNow - review.CreatedAt;
+        if (timeSincePosted.TotalHours > 24)
+            return BadRequest("You can only delete your review within 24 hours of posting.");
+
+        review.IsDeleted = true;
+        review.DeletedAt = DateTime.UtcNow;
+        review.DeletedBy = $"User:{userId}";
+        review.DeletedByAdminId = null;
+
         await _context.SaveChangesAsync();
-
-        return Ok("Review deleted.");
+        return Ok("Review soft-deleted and logged.");
     }
 
 }
