@@ -108,4 +108,29 @@ public class ReviewController : ControllerBase
         return Ok($"Review {id} deleted by admin {adminId}.");
     }
 
+    [Authorize(Roles = "Admin")]
+    [HttpGet("user/{userId}")]
+    public async Task<IActionResult> GetUserReviews(int userId)
+    {
+        var reviews = await _context.Reviews
+            .Where(r => r.UserId == userId)
+            .Include(r => r.Hotel)
+            .OrderByDescending(r => r.CreatedAt)
+            .Select(r => new
+            {
+                r.Id,
+                Hotel = r.Hotel!.Name,
+                r.Rating,
+                r.Comment,
+                r.IsDeleted,
+                r.DeletedAt,
+                r.DeletedBy,
+                r.DeletedByAdminId,
+                r.CreatedAt
+            })
+            .ToListAsync();
+
+        return Ok(reviews);
+    }
+
 }
