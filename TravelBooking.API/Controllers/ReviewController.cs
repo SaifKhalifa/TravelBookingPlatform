@@ -88,4 +88,24 @@ public class ReviewController : ControllerBase
         return Ok("Review soft-deleted and logged.");
     }
 
+    // Admin deletion of reviews
+    [Authorize(Roles = "Admin")]
+    [HttpDelete("admin/{id}")]
+    public async Task<IActionResult> AdminDeleteReview(int id)
+    {
+        var adminId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+
+        var review = await _context.Reviews.FirstOrDefaultAsync(r => r.Id == id);
+        if (review == null || review.IsDeleted)
+            return NotFound("Review not found or already deleted.");
+
+        review.IsDeleted = true;
+        review.DeletedAt = DateTime.UtcNow;
+        review.DeletedBy = $"Admin:{adminId}";
+        review.DeletedByAdminId = adminId;
+
+        await _context.SaveChangesAsync();
+        return Ok($"Review {id} deleted by admin {adminId}.");
+    }
+
 }
