@@ -13,4 +13,11 @@ public class Review
     public string Comment { get; set; } = string.Empty;
 
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+    public bool IsDeleted { get; set; } = false;
+    public DateTime? DeletedAt { get; set; }
+    public string? DeletedBy { get; set; } // Can be "User:1" or "Admin:7"
+    public int? DeletedByAdminId { get; set; } // If deleted by admin
+    public User? DeletedByAdmin { get; set; } // FK to User for admin deletion
+
 }
