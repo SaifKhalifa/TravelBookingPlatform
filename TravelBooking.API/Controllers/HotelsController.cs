@@ -40,9 +40,9 @@ public class HotelsController : ControllerBase
     {
         var hotel = await _context.Hotels
             .Include(h => h.City)
-            .Include(h => h.Rooms)
+            .Include(h => h.Rooms!)
                 .ThenInclude(r => r.RoomType)
-            .Include(h => h.Rooms)
+            .Include(h => h.Rooms!)
                 .ThenInclude(r => r.Discount)
             .FirstOrDefaultAsync(h => h.Id == id);
 
@@ -56,7 +56,7 @@ public class HotelsController : ControllerBase
             hotel.StarRate,
             hotel.Location,
             City = hotel.City!.Name,
-            Rooms = hotel.Rooms.Select(r => new RoomDto
+            Rooms = hotel.Rooms?.Select(r => new RoomDto
             {
                 Id = r.Id,
                 RoomNumber = r.RoomNumber,
@@ -66,7 +66,7 @@ public class HotelsController : ControllerBase
                 IsAvailable = r.IsAvailable,
                 RoomType = r.RoomType!.Name,
                 Discount = r.Discount?.Name
-            })
+            }) ?? Enumerable.Empty<RoomDto>()
         };
 
         return Ok(response);
