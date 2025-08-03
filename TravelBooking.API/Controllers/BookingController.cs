@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
+using TravelBooking.API.DTOs;
 using TravelBooking.Domain.Entities;
 using TravelBooking.Infrastructure.Persistence;
 
@@ -21,7 +22,7 @@ public class BookingController : ControllerBase
 
     // POST: /api/booking
     [HttpPost]
-    public async Task<IActionResult> BookRoom([FromBody] Booking request)
+    public async Task<IActionResult> BookRoom([FromBody] BookingCreateDto request)
     {
         var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
 
@@ -38,8 +39,8 @@ public class BookingController : ControllerBase
         if (nights <= 0)
             return BadRequest("Check-out must be after check-in");
 
-        var basePrice = nights * room.PricePerNight;
         var discountPercent = room.Discount?.Percentage ?? 0;
+        var basePrice = nights * room.PricePerNight;
         var totalPrice = basePrice * (1 - (discountPercent / 100));
 
         var booking = new Booking
@@ -53,6 +54,7 @@ public class BookingController : ControllerBase
         };
 
         room.IsAvailable = false;
+
         await _context.Bookings.AddAsync(booking);
         await _context.SaveChangesAsync();
 
@@ -61,7 +63,7 @@ public class BookingController : ControllerBase
             BookingId = booking.Id,
             Amount = totalPrice,
             Status = "Paid",
-            Method = "Cash", // Or "CreditCard", "PayPal", etc.
+            Method = "Cash",
             TransactionId = $"TRX-{Guid.NewGuid().ToString().Substring(0, 8)}",
             CreatedAt = DateTime.UtcNow
         };
@@ -69,26 +71,20 @@ public class BookingController : ControllerBase
         await _context.Payments.AddAsync(payment);
         await _context.SaveChangesAsync();
 
-        return Ok(new
+        var response = new BookingDto
         {
-            booking.Id,
-            Hotel = room.Hotel?.Name,
+            Id = booking.Id,
+            Hotel = room.Hotel!.Name,
             Room = room.RoomNumber,
-            RoomType = room.RoomType?.Name,
-            Discount = room.Discount?.Name ?? "No Discount",
-            DiscountApplied = $"{discountPercent}%",
-            Total = totalPrice,
-            CheckIn = booking.CheckInDate,
-            CheckOut = booking.CheckOutDate,
+            RoomType = room.RoomType?.Name ?? "N/A",
+            Discount = room.Discount?.Name,
+            TotalPrice = totalPrice,
             Status = booking.Status,
-            Payment = new
-            {
-                payment.Method,
-                payment.Status,
-                payment.TransactionId
-            }
-        });
+            CheckInDate = booking.CheckInDate,
+            CheckOutDate = booking.CheckOutDate
+        };
 
+        return Ok(response);
     }
 
     // GET: /api/booking/history
@@ -99,21 +95,29 @@ public class BookingController : ControllerBase
 
         var bookings = await _context.Bookings
             .Where(b => b.UserId == userId)
-            .Include(b => b.Room)
+            .Include(b => b.Room)!
                 .ThenInclude(r => r.Hotel)
+            .Include(b => b.Room)!
+                .ThenInclude(r => r.RoomType)
+            .Include(b => b.Room)!
+                .ThenInclude(r => r.Discount)
             .OrderByDescending(b => b.CheckInDate)
             .ToListAsync();
 
-        return Ok(bookings.Select(b => new
+        var response = bookings.Select(b => new BookingDto
         {
-            b.Id,
+            Id = b.Id,
             Hotel = b.Room!.Hotel!.Name,
             Room = b.Room.RoomNumber,
-            b.CheckInDate,
-            b.CheckOutDate,
-            b.TotalPrice,
-            b.Status
-        }));
+            RoomType = b.Room.RoomType!.Name,
+            Discount = b.Room.Discount?.Name,
+            TotalPrice = b.TotalPrice,
+            Status = b.Status,
+            CheckInDate = b.CheckInDate,
+            CheckOutDate = b.CheckOutDate
+        });
+
+        return Ok(response);
     }
 
     // GET: /api/booking/confirmation/{id}
@@ -123,24 +127,31 @@ public class BookingController : ControllerBase
         var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
 
         var booking = await _context.Bookings
-            .Include(b => b.Room)
+            .Include(b => b.Room)!
                 .ThenInclude(r => r.Hotel)
+            .Include(b => b.Room)!
+                .ThenInclude(r => r.RoomType)
+            .Include(b => b.Room)!
+                .ThenInclude(r => r.Discount)
             .FirstOrDefaultAsync(b => b.Id == id && b.UserId == userId);
 
         if (booking == null)
             return NotFound("Booking not found");
 
-        return Ok(new
+        var response = new BookingDto
         {
-            booking.Id,
+            Id = booking.Id,
             Hotel = booking.Room!.Hotel!.Name,
-            Address = booking.Room.Hotel.Location,
             Room = booking.Room.RoomNumber,
-            booking.CheckInDate,
-            booking.CheckOutDate,
-            booking.TotalPrice,
-            booking.Status
-        });
+            RoomType = booking.Room.RoomType!.Name,
+            Discount = booking.Room.Discount?.Name,
+            TotalPrice = booking.TotalPrice,
+            Status = booking.Status,
+            CheckInDate = booking.CheckInDate,
+            CheckOutDate = booking.CheckOutDate
+        };
+
+        return Ok(response);
     }
 
     // POST: /api/booking/cancel/{id}
@@ -150,7 +161,12 @@ public class BookingController : ControllerBase
         var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
 
         var booking = await _context.Bookings
-            .Include(b => b.Room)
+            .Include(b => b.Room)!
+                .ThenInclude(r => r.Hotel)
+            .Include(b => b.Room)!
+                .ThenInclude(r => r.RoomType)
+            .Include(b => b.Room)!
+                .ThenInclude(r => r.Discount)
             .FirstOrDefaultAsync(b => b.Id == id && b.UserId == userId);
 
         if (booking == null)
@@ -164,12 +180,19 @@ public class BookingController : ControllerBase
 
         await _context.SaveChangesAsync();
 
-        return Ok(new
+        var response = new BookingDto
         {
-            Message = "Booking cancelled successfully.",
-            booking.Id,
-            booking.Status
-        });
-    }
+            Id = booking.Id,
+            Hotel = booking.Room.Hotel!.Name,
+            Room = booking.Room.RoomNumber,
+            RoomType = booking.Room.RoomType!.Name,
+            Discount = booking.Room.Discount?.Name,
+            TotalPrice = booking.TotalPrice,
+            Status = booking.Status,
+            CheckInDate = booking.CheckInDate,
+            CheckOutDate = booking.CheckOutDate
+        };
 
+        return Ok(response);
+    }
 }
