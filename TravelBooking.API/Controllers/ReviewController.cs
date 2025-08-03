@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
+using TravelBooking.API.DTOs;
 using TravelBooking.Domain.Entities;
 using TravelBooking.Infrastructure.Persistence;
 
@@ -44,21 +45,23 @@ public class ReviewController : ControllerBase
     }
 
     // GET: /api/review/hotel/5
-    [HttpGet("hotel/{hotelId}")]
     [AllowAnonymous]
+    [HttpGet("hotel/{hotelId}")]
     public async Task<IActionResult> GetHotelReviews(int hotelId)
     {
         var reviews = await _context.Reviews
             .Where(r => r.HotelId == hotelId && !r.IsDeleted)
             .Include(r => r.User)
             .OrderByDescending(r => r.CreatedAt)
-            .Select(r => new
+            .Select(r => new ReviewDto
             {
-                r.Id,
+                Id = r.Id,
+                Hotel = r.Hotel!.Name,
                 User = r.User!.Name,
-                r.Rating,
-                r.Comment,
-                r.CreatedAt
+                Rating = r.Rating,
+                Comment = r.Comment,
+                IsDeleted = false,
+                CreatedAt = r.CreatedAt
             })
             .ToListAsync();
 
@@ -115,22 +118,24 @@ public class ReviewController : ControllerBase
         var reviews = await _context.Reviews
             .Where(r => r.UserId == userId)
             .Include(r => r.Hotel)
+            .Include(r => r.User)
             .OrderByDescending(r => r.CreatedAt)
-            .Select(r => new
+            .Select(r => new ReviewDto
             {
-                r.Id,
+                Id = r.Id,
                 Hotel = r.Hotel!.Name,
-                r.Rating,
-                r.Comment,
-                r.IsDeleted,
-                r.DeletedAt,
-                r.DeletedBy,
-                r.DeletedByAdminId,
-                r.CreatedAt
+                User = r.User!.Name,
+                Rating = r.Rating,
+                Comment = r.Comment,
+                IsDeleted = r.IsDeleted,
+                CreatedAt = r.CreatedAt,
+                DeletedAt = r.DeletedAt,
+                DeletedBy = r.DeletedBy
             })
             .ToListAsync();
 
         return Ok(reviews);
     }
+
 
 }
