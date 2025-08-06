@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using TravelBooking.API.DTOs;
 using TravelBooking.Infrastructure.Persistence;
+using TravelBooking.Application.DTOs;
 
 namespace TravelBooking.API.Controllers;
 
