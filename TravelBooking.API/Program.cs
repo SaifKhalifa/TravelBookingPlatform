@@ -81,6 +81,7 @@ builder.Services.AddAutoMapper(typeof(MappingProfile));
 
 // Repositories
 builder.Services.AddScoped<IBookingRepository, BookingRepository>();
+builder.Services.AddScoped<IAdminRepository, AdminRepository>();
 
 var app = builder.Build();
 
