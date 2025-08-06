@@ -80,6 +80,7 @@ builder.Services.AddScoped<EmailService>();
 builder.Services.AddScoped<IBookingService, BookingService>();
 builder.Services.AddScoped<IAdminService, AdminService>();
 builder.Services.AddScoped<IReviewService, ReviewService>();
+builder.Services.AddScoped<IHotelService, HotelService>();
 
 // AutoMapper
 builder.Services.AddAutoMapper(typeof(MappingProfile));
@@ -88,6 +89,7 @@ builder.Services.AddAutoMapper(typeof(MappingProfile));
 builder.Services.AddScoped<IBookingRepository, BookingRepository>();
 builder.Services.AddScoped<IAdminRepository, AdminRepository>();
 builder.Services.AddScoped<IReviewRepository, ReviewRepository>();
+builder.Services.AddScoped<IHotelRepository, HotelRepository>();
 
 var app = builder.Build();
 
