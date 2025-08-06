@@ -1,4 +1,4 @@
-﻿namespace TravelBooking.API.DTOs;
+﻿namespace TravelBooking.Application.DTOs;
 public class HotelDto
 {
     public int Id { get; set; }

@@ -1,4 +1,4 @@
-﻿namespace TravelBooking.API.DTOs;
+﻿namespace TravelBooking.Application.DTOs;
 public class RegisterDto
 {
     public string Name { get; set; } = string.Empty;
