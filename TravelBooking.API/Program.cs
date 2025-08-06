@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using TravelBooking.API.Mappings;
 using TravelBooking.Infrastructure.Persistence;
 using TravelBooking.Infrastructure.Services;
 
@@ -72,6 +73,9 @@ builder.Services.AddSwaggerGen(options =>
 
 // Email service
 builder.Services.AddScoped<EmailService>();
+
+// AutoMapper
+builder.Services.AddAutoMapper(typeof(MappingProfile));
 
 var app = builder.Build();
 
