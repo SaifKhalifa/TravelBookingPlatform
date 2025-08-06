@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using TravelBooking.API.DTOs;
@@ -13,10 +14,12 @@ namespace TravelBooking.API.Controllers;
 public class AdminController : ControllerBase
 {
     private readonly ApplicationDbContext _context;
+    private readonly IMapper _mapper;
 
-    public AdminController(ApplicationDbContext context)
+    public AdminController(ApplicationDbContext context, IMapper mapper)
     {
         _context = context;
+        _mapper = mapper;
     }
 
     // ========== CITIES CRUD ==========
@@ -82,16 +85,9 @@ public class AdminController : ControllerBase
     public async Task<IActionResult> CreateHotel([FromBody] CreateHotelDto dto)
     {
         var city = await _context.Cities.FindAsync(dto.CityId);
-        if (city == null) return BadRequest("Invalid CityId");
+        if (city == null) return BadRequest("Invalid CityId");        
 
-        var hotel = new Hotel
-        {
-            Name = dto.Name,
-            StarRate = dto.StarRate,
-            Location = dto.Location,
-            Owner = dto.Owner,
-            CityId = dto.CityId
-        };
+        var hotel = _mapper.Map<Hotel>(dto);
 
         await _context.Hotels.AddAsync(hotel);
         await _context.SaveChangesAsync();
@@ -148,17 +144,7 @@ public class AdminController : ControllerBase
         var hotel = await _context.Hotels.FindAsync(dto.HotelId);
         if (hotel == null) return BadRequest("Invalid HotelId");
 
-        var room = new Room
-        {
-            RoomNumber = dto.RoomNumber,
-            Adults = dto.Adults,
-            Children = dto.Children,
-            PricePerNight = dto.PricePerNight,
-            IsAvailable = dto.IsAvailable,
-            HotelId = dto.HotelId,
-            RoomTypeId = dto.RoomTypeId,
-            DiscountId = dto.DiscountId
-        };
+        var room = _mapper.Map<Room>(dto);
 
         await _context.Rooms.AddAsync(room);
         await _context.SaveChangesAsync();
@@ -212,11 +198,7 @@ public class AdminController : ControllerBase
     [HttpPost("roomtypes")]
     public async Task<IActionResult> CreateRoomType([FromBody] CreateRoomTypeDto dto)
     {
-        var type = new RoomType
-        {
-            Name = dto.Name,
-            Description = dto.Description
-        };
+        var type = _mapper.Map<RoomType>(dto);
 
         await _context.RoomTypes.AddAsync(type);
         await _context.SaveChangesAsync();
@@ -250,14 +232,7 @@ public class AdminController : ControllerBase
     [HttpPost("discounts")]
     public async Task<IActionResult> CreateDiscount([FromBody] CreateDiscountDto dto)
     {
-        var discount = new Discount
-        {
-            Name = dto.Name,
-            Code = dto.Code,
-            Percentage = dto.Percentage,
-            StartDate = dto.StartDate,
-            EndDate = dto.EndDate
-        };
+        var discount = _mapper.Map<Discount>(dto);
 
         await _context.Discounts.AddAsync(discount);
         await _context.SaveChangesAsync();
