@@ -1,7 +1,7 @@
 using AutoMapper;
 using TravelBooking.Application.DTOs;
-using TravelBooking.Application.Interfaces;
 using TravelBooking.Application.Services.Interfaces;
+using TravelBooking.Application.Services.Interfaces.IRepository;
 using TravelBooking.Domain.Entities;
 
 namespace TravelBooking.Application.Services;

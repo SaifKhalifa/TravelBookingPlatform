@@ -2,7 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using TravelBooking.API.Mappings;
-using TravelBooking.Application.Interfaces;
+using TravelBooking.Application.Services.Interfaces.IRepository;
 using TravelBooking.Infrastructure.Persistence;
 using TravelBooking.Infrastructure.Repositories;
 using TravelBooking.Infrastructure.Services;

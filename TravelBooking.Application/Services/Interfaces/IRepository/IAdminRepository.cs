@@ -1,6 +1,6 @@
 ﻿using TravelBooking.Domain.Entities;
 
-namespace TravelBooking.Application.Interfaces;
+namespace TravelBooking.Application.Services.Interfaces.IRepository;
 
 public interface IAdminRepository
 {
