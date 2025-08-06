@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
@@ -14,10 +15,12 @@ namespace TravelBooking.API.Controllers;
 public class BookingController : ControllerBase
 {
     private readonly ApplicationDbContext _context;
+    private readonly IMapper _mapper;
 
-    public BookingController(ApplicationDbContext context)
+    public BookingController(ApplicationDbContext context, IMapper mapper)
     {
         _context = context;
+        _mapper = mapper;
     }
 
     // POST: /api/booking
@@ -70,19 +73,8 @@ public class BookingController : ControllerBase
 
         await _context.Payments.AddAsync(payment);
         await _context.SaveChangesAsync();
-
-        var response = new BookingDto
-        {
-            Id = booking.Id,
-            Hotel = room.Hotel!.Name,
-            Room = room.RoomNumber,
-            RoomType = room.RoomType?.Name ?? "N/A",
-            Discount = room.Discount?.Name,
-            TotalPrice = totalPrice,
-            Status = booking.Status,
-            CheckInDate = booking.CheckInDate,
-            CheckOutDate = booking.CheckOutDate
-        };
+        
+        var response = _mapper.Map<BookingDto>(booking);
 
         return Ok(response);
     }
@@ -104,19 +96,7 @@ public class BookingController : ControllerBase
             .OrderByDescending(b => b.CheckInDate)
             .ToListAsync();
 
-        var response = bookings.Select(b => new BookingDto
-        {
-            Id = b.Id,
-            Hotel = b.Room!.Hotel!.Name,
-            Room = b.Room.RoomNumber,
-            RoomType = b.Room.RoomType!.Name,
-            Discount = b.Room.Discount?.Name,
-            TotalPrice = b.TotalPrice,
-            Status = b.Status,
-            CheckInDate = b.CheckInDate,
-            CheckOutDate = b.CheckOutDate
-        });
-
+       var response = _mapper.Map<List<BookingDto>>(bookings);
         return Ok(response);
     }
 
@@ -137,19 +117,8 @@ public class BookingController : ControllerBase
 
         if (booking == null)
             return NotFound("Booking not found");
-
-        var response = new BookingDto
-        {
-            Id = booking.Id,
-            Hotel = booking.Room!.Hotel!.Name,
-            Room = booking.Room.RoomNumber,
-            RoomType = booking.Room.RoomType!.Name,
-            Discount = booking.Room.Discount?.Name,
-            TotalPrice = booking.TotalPrice,
-            Status = booking.Status,
-            CheckInDate = booking.CheckInDate,
-            CheckOutDate = booking.CheckOutDate
-        };
+        
+        var response = _mapper.Map<BookingDto>(booking);
 
         return Ok(response);
     }
@@ -179,19 +148,8 @@ public class BookingController : ControllerBase
         booking.Room!.IsAvailable = true;
 
         await _context.SaveChangesAsync();
-
-        var response = new BookingDto
-        {
-            Id = booking.Id,
-            Hotel = booking.Room.Hotel!.Name,
-            Room = booking.Room.RoomNumber,
-            RoomType = booking.Room.RoomType!.Name,
-            Discount = booking.Room.Discount?.Name,
-            TotalPrice = booking.TotalPrice,
-            Status = booking.Status,
-            CheckInDate = booking.CheckInDate,
-            CheckOutDate = booking.CheckOutDate
-        };
+        
+        var response = _mapper.Map<BookingDto>(booking);
 
         return Ok(response);
     }
