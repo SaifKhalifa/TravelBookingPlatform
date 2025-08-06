@@ -1,5 +1,5 @@
 ﻿using AutoMapper;
-using TravelBooking.API.DTOs;
+using TravelBooking.Application.DTOs;
 using TravelBooking.Domain.Entities;
 
 namespace TravelBooking.API.Mappings;
