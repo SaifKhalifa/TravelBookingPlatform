@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
@@ -14,10 +15,12 @@ namespace TravelBooking.API.Controllers;
 public class ReviewController : ControllerBase
 {
     private readonly ApplicationDbContext _context;
+    private readonly IMapper _mapper;
 
-    public ReviewController(ApplicationDbContext context)
+    public ReviewController(ApplicationDbContext context, IMapper mapper)
     {
         _context = context;
+        _mapper = mapper;
     }
 
     // POST: /api/review
@@ -52,20 +55,13 @@ public class ReviewController : ControllerBase
         var reviews = await _context.Reviews
             .Where(r => r.HotelId == hotelId && !r.IsDeleted)
             .Include(r => r.User)
+            .Include(r => r.Hotel)
             .OrderByDescending(r => r.CreatedAt)
-            .Select(r => new ReviewDto
-            {
-                Id = r.Id,
-                Hotel = r.Hotel!.Name,
-                User = r.User!.Name,
-                Rating = r.Rating,
-                Comment = r.Comment,
-                IsDeleted = false,
-                CreatedAt = r.CreatedAt
-            })
             .ToListAsync();
 
-        return Ok(reviews);
+        var response = _mapper.Map<List<ReviewDto>>(reviews);
+        return Ok(response);
+
     }
 
     // DELETE: /api/review/{id}
@@ -120,21 +116,11 @@ public class ReviewController : ControllerBase
             .Include(r => r.Hotel)
             .Include(r => r.User)
             .OrderByDescending(r => r.CreatedAt)
-            .Select(r => new ReviewDto
-            {
-                Id = r.Id,
-                Hotel = r.Hotel!.Name,
-                User = r.User!.Name,
-                Rating = r.Rating,
-                Comment = r.Comment,
-                IsDeleted = r.IsDeleted,
-                CreatedAt = r.CreatedAt,
-                DeletedAt = r.DeletedAt,
-                DeletedBy = r.DeletedBy
-            })
             .ToListAsync();
 
-        return Ok(reviews);
+        var response = _mapper.Map<List<ReviewDto>>(reviews);
+        return Ok(response);
+
     }
 
 
