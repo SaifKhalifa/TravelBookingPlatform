@@ -77,6 +77,8 @@ builder.Services.AddSwaggerGen(options =>
 
 // Services
 builder.Services.AddScoped<EmailService>();
+builder.Services.AddScoped<IBookingService, BookingService>();
+builder.Services.AddScoped<IAdminService, AdminService>();
 builder.Services.AddScoped<IReviewService, ReviewService>();
 
 // AutoMapper
