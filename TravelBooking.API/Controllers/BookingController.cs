@@ -1,11 +1,8 @@
-﻿using AutoMapper;
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 using TravelBooking.Application.DTOs;
-using TravelBooking.Domain.Entities;
-using TravelBooking.Infrastructure.Persistence;
+using TravelBooking.Application.Services.Interfaces;
 
 namespace TravelBooking.API.Controllers;
 
@@ -14,13 +11,11 @@ namespace TravelBooking.API.Controllers;
 [Route("api/[controller]")]
 public class BookingController : ControllerBase
 {
-    private readonly ApplicationDbContext _context;
-    private readonly IMapper _mapper;
+    private readonly IBookingService _bookingService;
 
-    public BookingController(ApplicationDbContext context, IMapper mapper)
+    public BookingController(IBookingService bookingService)
     {
-        _context = context;
-        _mapper = mapper;
+        _bookingService = bookingService;
     }
 
     // POST: /api/booking
@@ -29,54 +24,19 @@ public class BookingController : ControllerBase
     {
         var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
 
-        var room = await _context.Rooms
-            .Include(r => r.Discount)
-            .Include(r => r.RoomType)
-            .Include(r => r.Hotel)
-            .FirstOrDefaultAsync(r => r.Id == request.RoomId);
-
-        if (room == null || !room.IsAvailable)
-            return BadRequest("Room not available");
-
-        var nights = (request.CheckOutDate - request.CheckInDate).Days;
-        if (nights <= 0)
-            return BadRequest("Check-out must be after check-in");
-
-        var discountPercent = room.Discount?.Percentage ?? 0;
-        var basePrice = nights * room.PricePerNight;
-        var totalPrice = basePrice * (1 - (discountPercent / 100));
-
-        var booking = new Booking
+        try
         {
-            UserId = userId,
-            RoomId = request.RoomId,
-            CheckInDate = request.CheckInDate,
-            CheckOutDate = request.CheckOutDate,
-            TotalPrice = totalPrice,
-            Status = "Confirmed"
-        };
-
-        room.IsAvailable = false;
-
-        await _context.Bookings.AddAsync(booking);
-        await _context.SaveChangesAsync();
-
-        var payment = new Payment
+            var response = await _bookingService.BookAsync(userId, request);
+            return Ok(response);
+        }
+        catch (ArgumentException ex)
         {
-            BookingId = booking.Id,
-            Amount = totalPrice,
-            Status = "Paid",
-            Method = "Cash",
-            TransactionId = $"TRX-{Guid.NewGuid().ToString().Substring(0, 8)}",
-            CreatedAt = DateTime.UtcNow
-        };
-
-        await _context.Payments.AddAsync(payment);
-        await _context.SaveChangesAsync();
-        
-        var response = _mapper.Map<BookingDto>(booking);
-
-        return Ok(response);
+            return BadRequest(ex.Message);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(ex.Message);
+        }
     }
 
     // GET: /api/booking/history
@@ -84,19 +44,7 @@ public class BookingController : ControllerBase
     public async Task<IActionResult> GetBookingHistory()
     {
         var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
-
-        var bookings = await _context.Bookings
-            .Where(b => b.UserId == userId)
-            .Include(b => b.Room)!
-                .ThenInclude(r => r.Hotel)
-            .Include(b => b.Room)!
-                .ThenInclude(r => r.RoomType)
-            .Include(b => b.Room)!
-                .ThenInclude(r => r.Discount)
-            .OrderByDescending(b => b.CheckInDate)
-            .ToListAsync();
-
-       var response = _mapper.Map<List<BookingDto>>(bookings);
+        var response = await _bookingService.GetBookingHistoryAsync(userId);
         return Ok(response);
     }
 
@@ -105,22 +53,11 @@ public class BookingController : ControllerBase
     public async Task<IActionResult> GetBookingConfirmation(int id)
     {
         var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+        var response = await _bookingService.GetBookingConfirmationAsync(userId, id);
 
-        var booking = await _context.Bookings
-            .Include(b => b.Room)!
-                .ThenInclude(r => r.Hotel)
-            .Include(b => b.Room)!
-                .ThenInclude(r => r.RoomType)
-            .Include(b => b.Room)!
-                .ThenInclude(r => r.Discount)
-            .FirstOrDefaultAsync(b => b.Id == id && b.UserId == userId);
-
-        if (booking == null)
-            return NotFound("Booking not found");
-        
-        var response = _mapper.Map<BookingDto>(booking);
-
-        return Ok(response);
+        return response != null
+            ? Ok(response)
+            : NotFound("Booking not found.");
     }
 
     // POST: /api/booking/cancel/{id}
@@ -128,29 +65,10 @@ public class BookingController : ControllerBase
     public async Task<IActionResult> CancelBooking(int id)
     {
         var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+        var response = await _bookingService.CancelBookingAsync(userId, id);
 
-        var booking = await _context.Bookings
-            .Include(b => b.Room)!
-                .ThenInclude(r => r.Hotel)
-            .Include(b => b.Room)!
-                .ThenInclude(r => r.RoomType)
-            .Include(b => b.Room)!
-                .ThenInclude(r => r.Discount)
-            .FirstOrDefaultAsync(b => b.Id == id && b.UserId == userId);
-
-        if (booking == null)
-            return NotFound("Booking not found.");
-
-        if (booking.Status == "Cancelled")
-            return BadRequest("Booking is already cancelled.");
-
-        booking.Status = "Cancelled";
-        booking.Room!.IsAvailable = true;
-
-        await _context.SaveChangesAsync();
-        
-        var response = _mapper.Map<BookingDto>(booking);
-
-        return Ok(response);
+        return response != null
+            ? Ok(response)
+            : BadRequest("Booking not found or already cancelled.");
     }
 }
