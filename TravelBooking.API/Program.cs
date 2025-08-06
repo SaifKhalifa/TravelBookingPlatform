@@ -81,6 +81,7 @@ builder.Services.AddScoped<IBookingService, BookingService>();
 builder.Services.AddScoped<IAdminService, AdminService>();
 builder.Services.AddScoped<IReviewService, ReviewService>();
 builder.Services.AddScoped<IHotelService, HotelService>();
+builder.Services.AddScoped<IAdminService, AdminService>();
 
 // AutoMapper
 builder.Services.AddAutoMapper(typeof(MappingProfile));
