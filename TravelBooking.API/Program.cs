@@ -2,6 +2,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using TravelBooking.API.Mappings;
+using TravelBooking.Application.Services;
+using TravelBooking.Application.Services.Interfaces;
 using TravelBooking.Application.Services.Interfaces.IRepository;
 using TravelBooking.Infrastructure.Persistence;
 using TravelBooking.Infrastructure.Repositories;
@@ -73,8 +75,9 @@ builder.Services.AddSwaggerGen(options =>
     });
 });
 
-// Email service
+// Services
 builder.Services.AddScoped<EmailService>();
+builder.Services.AddScoped<IReviewService, ReviewService>();
 
 // AutoMapper
 builder.Services.AddAutoMapper(typeof(MappingProfile));
@@ -82,6 +85,7 @@ builder.Services.AddAutoMapper(typeof(MappingProfile));
 // Repositories
 builder.Services.AddScoped<IBookingRepository, BookingRepository>();
 builder.Services.AddScoped<IAdminRepository, AdminRepository>();
+builder.Services.AddScoped<IReviewRepository, ReviewRepository>();
 
 var app = builder.Build();
 

@@ -11,3 +11,10 @@ public class ReviewDto
     public DateTime? DeletedAt { get; set; }
     public string? DeletedBy { get; set; }
 }
+
+public class ReviewCreateDto
+{
+    public int HotelId { get; set; }
+    public int Rating { get; set; }
+    public string Comment { get; set; } = string.Empty;
+}
