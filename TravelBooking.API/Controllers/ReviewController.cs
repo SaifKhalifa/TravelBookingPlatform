@@ -1,7 +1,9 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
+using TravelBooking.API.DTOs;
 using TravelBooking.Domain.Entities;
 using TravelBooking.Infrastructure.Persistence;
 
@@ -13,10 +15,12 @@ namespace TravelBooking.API.Controllers;
 public class ReviewController : ControllerBase
 {
     private readonly ApplicationDbContext _context;
+    private readonly IMapper _mapper;
 
-    public ReviewController(ApplicationDbContext context)
+    public ReviewController(ApplicationDbContext context, IMapper mapper)
     {
         _context = context;
+        _mapper = mapper;
     }
 
     // POST: /api/review
@@ -44,25 +48,20 @@ public class ReviewController : ControllerBase
     }
 
     // GET: /api/review/hotel/5
-    [HttpGet("hotel/{hotelId}")]
     [AllowAnonymous]
+    [HttpGet("hotel/{hotelId}")]
     public async Task<IActionResult> GetHotelReviews(int hotelId)
     {
         var reviews = await _context.Reviews
             .Where(r => r.HotelId == hotelId && !r.IsDeleted)
             .Include(r => r.User)
+            .Include(r => r.Hotel)
             .OrderByDescending(r => r.CreatedAt)
-            .Select(r => new
-            {
-                r.Id,
-                User = r.User!.Name,
-                r.Rating,
-                r.Comment,
-                r.CreatedAt
-            })
             .ToListAsync();
 
-        return Ok(reviews);
+        var response = _mapper.Map<List<ReviewDto>>(reviews);
+        return Ok(response);
+
     }
 
     // DELETE: /api/review/{id}
@@ -115,22 +114,14 @@ public class ReviewController : ControllerBase
         var reviews = await _context.Reviews
             .Where(r => r.UserId == userId)
             .Include(r => r.Hotel)
+            .Include(r => r.User)
             .OrderByDescending(r => r.CreatedAt)
-            .Select(r => new
-            {
-                r.Id,
-                Hotel = r.Hotel!.Name,
-                r.Rating,
-                r.Comment,
-                r.IsDeleted,
-                r.DeletedAt,
-                r.DeletedBy,
-                r.DeletedByAdminId,
-                r.CreatedAt
-            })
             .ToListAsync();
 
-        return Ok(reviews);
+        var response = _mapper.Map<List<ReviewDto>>(reviews);
+        return Ok(response);
+
     }
+
 
 }

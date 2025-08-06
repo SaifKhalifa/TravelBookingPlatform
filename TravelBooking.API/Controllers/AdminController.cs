@@ -1,6 +1,8 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using TravelBooking.API.DTOs;
 using TravelBooking.Domain.Entities;
 using TravelBooking.Infrastructure.Persistence;
 
@@ -12,10 +14,12 @@ namespace TravelBooking.API.Controllers;
 public class AdminController : ControllerBase
 {
     private readonly ApplicationDbContext _context;
+    private readonly IMapper _mapper;
 
-    public AdminController(ApplicationDbContext context)
+    public AdminController(ApplicationDbContext context, IMapper mapper)
     {
         _context = context;
+        _mapper = mapper;
     }
 
     // ========== CITIES CRUD ==========
@@ -78,17 +82,19 @@ public class AdminController : ControllerBase
 
     // POST: /api/admin/hotels
     [HttpPost("hotels")]
-    public async Task<IActionResult> CreateHotel([FromBody] Hotel hotel)
+    public async Task<IActionResult> CreateHotel([FromBody] CreateHotelDto dto)
     {
-        var city = await _context.Cities.FindAsync(hotel.CityId);
-        if (city == null) return BadRequest("Invalid CityId");
+        var city = await _context.Cities.FindAsync(dto.CityId);
+        if (city == null) return BadRequest("Invalid CityId");        
 
-        hotel.City = city;
+        var hotel = _mapper.Map<Hotel>(dto);
 
         await _context.Hotels.AddAsync(hotel);
         await _context.SaveChangesAsync();
-        return Ok(hotel);
+
+        return Ok(new { hotel.Id, hotel.Name });
     }
+
 
     // PUT: /api/admin/hotels/{id}
     [HttpPut("hotels/{id}")]
@@ -133,16 +139,19 @@ public class AdminController : ControllerBase
 
     // POST: /api/admin/rooms
     [HttpPost("rooms")]
-    public async Task<IActionResult> CreateRoom([FromBody] Room room)
+    public async Task<IActionResult> CreateRoom([FromBody] CreateRoomDto dto)
     {
-        var hotel = await _context.Hotels.FindAsync(room.HotelId);
+        var hotel = await _context.Hotels.FindAsync(dto.HotelId);
         if (hotel == null) return BadRequest("Invalid HotelId");
 
-        room.Hotel = hotel;
+        var room = _mapper.Map<Room>(dto);
+
         await _context.Rooms.AddAsync(room);
         await _context.SaveChangesAsync();
-        return Ok(room);
+
+        return Ok(new { room.Id, room.RoomNumber });
     }
+
 
     // PUT: /api/admin/rooms/{id}
     [HttpPut("rooms/{id}")]
@@ -187,11 +196,14 @@ public class AdminController : ControllerBase
 
     // POST: /api/admin/roomtypes
     [HttpPost("roomtypes")]
-    public async Task<IActionResult> CreateRoomType([FromBody] RoomType type)
+    public async Task<IActionResult> CreateRoomType([FromBody] CreateRoomTypeDto dto)
     {
+        var type = _mapper.Map<RoomType>(dto);
+
         await _context.RoomTypes.AddAsync(type);
         await _context.SaveChangesAsync();
-        return Ok(type);
+
+        return Ok(new { type.Id, type.Name });
     }
 
     // DELETE: /api/admin/roomtypes/{id}
@@ -205,6 +217,7 @@ public class AdminController : ControllerBase
         return Ok("Room type deleted");
     }
     #endregion
+  
     // ========== DISCOUNTS CRUD ==========
     #region Discounts CRUD
     // GET: /api/admin/discounts
@@ -217,11 +230,14 @@ public class AdminController : ControllerBase
 
     // POST: /api/admin/discounts
     [HttpPost("discounts")]
-    public async Task<IActionResult> CreateDiscount([FromBody] Discount discount)
+    public async Task<IActionResult> CreateDiscount([FromBody] CreateDiscountDto dto)
     {
+        var discount = _mapper.Map<Discount>(dto);
+
         await _context.Discounts.AddAsync(discount);
         await _context.SaveChangesAsync();
-        return Ok(discount);
+
+        return Ok(new { discount.Id, discount.Name });
     }
 
     // DELETE: /api/admin/discounts/{id}
