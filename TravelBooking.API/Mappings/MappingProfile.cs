@@ -25,6 +25,9 @@ public class MappingProfile : Profile
             .ForMember(dest => dest.User, opt => opt.MapFrom(src => src.User!.Name))
             .ForMember(dest => dest.Hotel, opt => opt.MapFrom(src => src.Hotel!.Name));
 
+        CreateMap<Hotel, HotelWithRoomsDto>()
+            .ForMember(dest => dest.City, opt => opt.MapFrom(src => src.City!.Name));
+
         // DTO -> ENTITY
         CreateMap<CreateHotelDto, Hotel>();
         CreateMap<CreateRoomDto, Room>();
