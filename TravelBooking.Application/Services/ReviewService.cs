@@ -31,6 +31,9 @@ public class ReviewService : IReviewService
 
     public async Task LeaveReviewAsync(int userId, ReviewCreateDto dto)
     {
+        if (!await _repo.HotelExistsAsync(dto.HotelId))
+            throw new ArgumentException("Invalid Hotel ID");
+
         if (await _repo.HasReviewedAsync(userId, dto.HotelId))
             throw new InvalidOperationException("You have already reviewed this hotel.");
 
