@@ -17,8 +17,6 @@ namespace TravelBooking.API.Controllers;
 [Route("api/[controller]")]
 public class AuthController : ControllerBase
 {
-    private static List<User> Users = new(); // TEMP in-memory DB
-
     private readonly IConfiguration _config;
 
     private readonly ApplicationDbContext _context;
@@ -102,20 +100,5 @@ public class AuthController : ControllerBase
         );
 
         return new JwtSecurityTokenHandler().WriteToken(token);
-    }
-
-    [Authorize]
-    [HttpGet("ping")]
-    public IActionResult Ping()
-    {
-        return Ok("API is up and running");
-    }
-
-    [Authorize(Roles = "Admin")]
-    [HttpGet("admin-only")]
-    public IActionResult AdminZone()
-    {
-        return Ok("You've been arrived at admin test zone");
-    }
-
+    }   
 }
