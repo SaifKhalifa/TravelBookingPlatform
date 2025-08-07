@@ -1,5 +1,5 @@
 ﻿using AutoMapper;
-using TravelBooking.API.DTOs;
+using TravelBooking.Application.DTOs;
 using TravelBooking.Domain.Entities;
 
 namespace TravelBooking.API.Mappings;
@@ -24,6 +24,9 @@ public class MappingProfile : Profile
         CreateMap<Review, ReviewDto>()
             .ForMember(dest => dest.User, opt => opt.MapFrom(src => src.User!.Name))
             .ForMember(dest => dest.Hotel, opt => opt.MapFrom(src => src.Hotel!.Name));
+
+        CreateMap<Hotel, HotelWithRoomsDto>()
+            .ForMember(dest => dest.City, opt => opt.MapFrom(src => src.City!.Name));
 
         // DTO -> ENTITY
         CreateMap<CreateHotelDto, Hotel>();
