@@ -17,6 +17,9 @@ public class ReviewRepository : IReviewRepository
     public async Task<bool> HasReviewedAsync(int userId, int hotelId) =>
         await _context.Reviews.AnyAsync(r => r.UserId == userId && r.HotelId == hotelId && !r.IsDeleted);
 
+    public async Task<bool> HotelExistsAsync(int hotelId) =>
+        await _context.Hotels.AnyAsync(h => h.Id == hotelId);
+
     public async Task<Hotel?> GetHotelByIdAsync(int hotelId) =>
         await _context.Hotels.FindAsync(hotelId);
 
