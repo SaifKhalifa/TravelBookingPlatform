@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using Moq;
-using Xunit;
+﻿using Moq;
 using AutoMapper;
 using TravelBooking.Application.Services;
 using TravelBooking.Application.DTOs;

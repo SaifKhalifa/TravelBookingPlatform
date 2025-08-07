@@ -18,6 +18,7 @@ public class AdminService : IAdminService
     }
 
     // ---------------------- HOTEL CREATION ----------------------
+    #region Hotel Management
     public async Task<Hotel> CreateHotelAsync(CreateHotelDto dto)
     {
         if (!await _adminRepo.CityExistsAsync(dto.CityId))
@@ -56,9 +57,10 @@ public class AdminService : IAdminService
 
     public async Task<List<Hotel>> GetHotelsAsync() =>
         await _adminRepo.GetAllHotelsAsync();
+    #endregion
 
     // ---------------------- ROOM MANAGEMENT ----------------------
-
+    #region Room Management
     public async Task<Room> CreateRoomAsync(CreateRoomDto dto)
     {
         if (!await _adminRepo.HotelExistsAsync(dto.HotelId))
@@ -100,9 +102,10 @@ public class AdminService : IAdminService
 
     public async Task<List<Room>> GetRoomsAsync() =>
         await _adminRepo.GetAllRoomsAsync();
+    #endregion
 
     // ---------------------- ROOM TYPE MANAGEMENT ----------------------
-
+    #region Room Type Management
     public async Task<RoomType> CreateRoomTypeAsync(CreateRoomTypeDto dto)
     {
         var type = _mapper.Map<RoomType>(dto);
@@ -123,9 +126,10 @@ public class AdminService : IAdminService
         await _adminRepo.SaveChangesAsync();
         return true;
     }
+    #endregion
 
     // ---------------------- DISCOUNTS ----------------------
-
+    #region Discount Management
     public async Task<Discount> CreateDiscountAsync(CreateDiscountDto dto)
     {
         var discount = _mapper.Map<Discount>(dto);
@@ -146,9 +150,10 @@ public class AdminService : IAdminService
         await _adminRepo.SaveChangesAsync();
         return true;
     }
+    #endregion
 
     // ---------------------- CITY MANAGEMENT ----------------------
-
+    #region City Management
     public async Task<List<City>> GetCitiesAsync() =>
         await _adminRepo.GetAllCitiesAsync();
 
@@ -180,4 +185,5 @@ public class AdminService : IAdminService
         await _adminRepo.SaveChangesAsync();
         return true;
     }
+    #endregion
 }

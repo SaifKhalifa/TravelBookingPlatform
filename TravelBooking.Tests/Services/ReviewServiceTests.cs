@@ -4,7 +4,6 @@ using TravelBooking.Application.DTOs;
 using TravelBooking.Application.Services;
 using TravelBooking.Application.Services.Interfaces.IRepository;
 using TravelBooking.Domain.Entities;
-using Xunit;
 
 namespace TravelBooking.Tests.Services;
 public class ReviewServiceTests

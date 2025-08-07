@@ -1,5 +1,4 @@
 using AutoMapper;
-using Microsoft.EntityFrameworkCore;
 using TravelBooking.Application.DTOs;
 using TravelBooking.Application.Services.Interfaces;
 using TravelBooking.Application.Services.Interfaces.IRepository;

@@ -1,13 +1,9 @@
 ﻿using AutoMapper;
 using Moq;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using TravelBooking.Application.DTOs;
 using TravelBooking.Application.Services;
 using TravelBooking.Application.Services.Interfaces.IRepository;
 using TravelBooking.Domain.Entities;
-using Xunit;
 
 namespace TravelBooking.Tests.Services;
 
