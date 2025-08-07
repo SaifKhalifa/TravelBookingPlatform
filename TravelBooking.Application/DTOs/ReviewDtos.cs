@@ -1,4 +1,4 @@
-﻿namespace TravelBooking.API.DTOs;
+﻿namespace TravelBooking.Application.DTOs;
 public class ReviewDto
 {
     public int Id { get; set; }
@@ -10,4 +10,11 @@ public class ReviewDto
     public DateTime CreatedAt { get; set; }
     public DateTime? DeletedAt { get; set; }
     public string? DeletedBy { get; set; }
+}
+
+public class ReviewCreateDto
+{
+    public int HotelId { get; set; }
+    public int Rating { get; set; }
+    public string Comment { get; set; } = string.Empty;
 }

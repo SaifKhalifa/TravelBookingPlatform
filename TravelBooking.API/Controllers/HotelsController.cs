@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using TravelBooking.API.DTOs;
-using TravelBooking.Infrastructure.Persistence;
+using TravelBooking.Application.DTOs;
+using TravelBooking.Application.Services.Interfaces;
 
 namespace TravelBooking.API.Controllers;
 
@@ -9,77 +8,41 @@ namespace TravelBooking.API.Controllers;
 [Route("api/[controller]")]
 public class HotelsController : ControllerBase
 {
-    private readonly ApplicationDbContext _context;
+    private readonly IHotelService _hotelService;
 
-    public HotelsController(ApplicationDbContext context)
+    public HotelsController(IHotelService hotelService)
     {
-        _context = context;
+        _hotelService = hotelService;
     }
 
-    // GET: /api/hotels
+    // GET: /api/hotels?city=paris&stars=5
     [HttpGet]
-    public async Task<IActionResult> GetHotels()
+    public async Task<IActionResult> GetHotels([FromQuery] string? city, [FromQuery] int? stars)
     {
-        var hotels = await _context.Hotels
-            .Include(h => h.City)
-            .Select(h => new HotelDto
-            {
-                Id = h.Id,
-                Name = h.Name,
-                StarRate = h.StarRate,
-                Location = h.Location,
-                City = h.City!.Name
-            })
-            .ToListAsync();
-
+        var filter = new HotelQueryDto { City = city, Stars = stars };
+        var hotels = await _hotelService.GetAllHotelsAsync(filter);
         return Ok(hotels);
     }
 
+    // GET: /api/hotels/{id}
     [HttpGet("{id}")]
     public async Task<IActionResult> GetHotel(int id)
     {
-        var hotel = await _context.Hotels
-            .Include(h => h.City)
-            .Include(h => h.Rooms!)
-                .ThenInclude(r => r.RoomType)
-            .Include(h => h.Rooms!)
-                .ThenInclude(r => r.Discount)
-            .FirstOrDefaultAsync(h => h.Id == id);
-
-        if (hotel == null)
-            return NotFound("Hotel not found.");
-
-        var response = new
-        {
-            hotel.Id,
-            hotel.Name,
-            hotel.StarRate,
-            hotel.Location,
-            City = hotel.City!.Name,
-            Rooms = hotel.Rooms?.Select(r => new RoomDto
-            {
-                Id = r.Id,
-                RoomNumber = r.RoomNumber,
-                Adults = r.Adults,
-                Children = r.Children,
-                PricePerNight = r.PricePerNight,
-                IsAvailable = r.IsAvailable,
-                RoomType = r.RoomType!.Name,
-                Discount = r.Discount?.Name
-            }) ?? Enumerable.Empty<RoomDto>()
-        };
-
-        return Ok(response);
+        var hotel = await _hotelService.GetHotelByIdAsync(id);
+        return hotel != null
+            ? Ok(hotel)
+            : NotFound("Hotel not found.");
     }
 
     // GET: /api/hotels/{id}/rooms
     [HttpGet("{id}/rooms")]
-    public async Task<IActionResult> GetRoomsForHotel(int id)
+    public async Task<IActionResult> GetHotelRooms(int id)
     {
-        var rooms = await _context.Rooms
-            .Where(r => r.HotelId == id && r.IsAvailable)
-            .ToListAsync();
+        var hotel = await _hotelService.GetHotelByIdAsync(id);
+        if (hotel == null)
+            return NotFound("Hotel not found.");
 
-        return Ok(rooms);
+        var availableRooms = hotel.Rooms.Where(r => r.IsAvailable).ToList();
+        return Ok(availableRooms);
     }
 }
