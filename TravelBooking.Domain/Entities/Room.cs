@@ -1,5 +1,3 @@
-using TravelBooking.Domain.Entities;
-
 namespace TravelBooking.Domain.Entities;
 public class Room
 {

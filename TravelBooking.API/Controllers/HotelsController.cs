@@ -1,6 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using TravelBooking.Application.DTOs;
-using TravelBooking.Application.Services.Interfaces;
 
 namespace TravelBooking.API.Controllers;
 
